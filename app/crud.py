@@ -52,3 +52,15 @@ def update_product(product_id: int, name: str | None, price: float | None, disco
                 "price": float(row[2]),
                 "discount_percent": float(row[3])
             }
+        
+def delete_product(product_id: int) -> bool:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            # Verificamos si existe antes de borrar
+            cur.execute("SELECT id FROM product WHERE id = %s", (product_id,))
+            if not cur.fetchone():
+                return False
+            
+            cur.execute("DELETE FROM product WHERE id = %s", (product_id,))
+            conn.commit()
+            return True

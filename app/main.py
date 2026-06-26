@@ -2,13 +2,18 @@ from fastapi import FastAPI, HTTPException, status
 from app.schemas import ProductCreate, ProductUpdate, ProductOut
 from app import crud
 
-app = FastAPI(title="MiSistemaVentas API", version="1.1.0")
+
+app = FastAPI(title="MiSistemaVentas API", version="1.2.0")
+
+@app.get("/")
+def root():
+    return {"message": "API OK. Ve a /docs para probar los endpoints CRUD"}
 
 @app.get("/products", response_model=list[ProductOut])
 def get_products():
     return crud.list_products()
 
-@app.post("/products", response_model=ProductOut)
+@app.post("/products", response_model=ProductOut, status_code=status.HTTP_201_CREATED)
 def post_product(payload: ProductCreate):
     return crud.create_product(payload.name, payload.price, payload.discount_percent)
 
@@ -21,6 +26,9 @@ def put_product(product_id: int, payload: ProductUpdate):
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     return updated_product
 
-@app.get("/")
-def root():
-    return {"message": "API OK. Ve a /docs o /products"}
+@app.delete("/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_product(product_id: int):
+    success = crud.delete_product(product_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return None
